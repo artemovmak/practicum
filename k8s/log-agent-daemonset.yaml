@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: log-agent
+  labels:
+    app: log-agent
+spec:
+  selector:
+    matchLabels:
+      app: log-agent
+  template:
+    metadata:
+      labels:
+        app: log-agent
+    spec:
+      containers:
+      - name: log-reader
+        image: busybox:latest
+        command: ["sh", "-c", "tail -F /mnt/logs/app.log"]
+        volumeMounts:
+        - name: app-logs
+          mountPath: /mnt/logs
+          readOnly: true
+      volumes:
+      - name: app-logs
+        hostPath:
+          path: /var/log/custom-app
+          type: Directory
