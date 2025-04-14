@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: log-archiver
+spec:
+  schedule: "*/10 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: archiver
+            image: curlimages/curl:latest
+            command: ["/bin/sh", "-c"]
+            args:
+            - |
+              TIMESTAMP=$(date +%Y%m%d%H%M%S)
+              FILENAME="/tmp/app-logs-${TIMESTAMP}.tar.gz"
+              echo "Archiving logs from http://custom-app-service/logs to ${FILENAME}"
+              if curl -fsS http://custom-app-service/logs | tar -czf ${FILENAME} -; then
+                echo "Archive successfully created: ${FILENAME}"
+                ls -lh ${FILENAME}
+              else
+                echo "Failed to fetch or archive logs."
+                exit 1
+              fi
+              echo "Archiving job complete."
+          restartPolicy: OnFailure
+      backoffLimit: 1
