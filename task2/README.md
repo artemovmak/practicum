@@ -1,68 +1,68 @@
-# Istio Integration with Kubernetes System
+# Интеграция Istio с Kubernetes-системой
 
-This solution implements Istio service mesh integration with the existing Kubernetes system.
+Данное решение реализует интеграцию сервисной сетки Istio с существующей Kubernetes-системой.
 
-## Components
+## Компоненты
 
 1. **Istio Gateway (`gateway.yaml`)**: 
-   - Accepts HTTP traffic on port 80
-   - Entry point for all external requests
+   - Принимает HTTP-трафик на порту 80
+   - Точка входа для всех внешних запросов
 
 2. **Virtual Service (`virtualservice.yaml`)**:
-   - Routes traffic to the custom application
-   - Special handling for `/log` endpoint with fault injection
-   - Returns 404 for all unknown routes
+   - Маршрутизирует трафик к основному приложению
+   - Специальная обработка конечной точки `/log` с искусственной задержкой
+   - Возвращает ошибку 404 для всех неизвестных маршрутов
 
 3. **Destination Rules**:
-   - `destinationrule.yaml`: Configuration for the main application
-   - `log-destinationrule.yaml`: Configuration for the log agent
-   - Both use:
-     - LEAST_CONN load balancing
-     - Connection limits (3 TCP connections, 5 pending HTTP requests)
-     - ISTIO_MUTUAL TLS mode
+   - `destinationrule.yaml`: Конфигурация для основного приложения
+   - `log-destinationrule.yaml`: Конфигурация для агента логирования
+   - Оба используют:
+     - Алгоритм балансировки нагрузки LEAST_CONN
+     - Ограничения соединений (3 TCP-соединения, 5 ожидающих HTTP-запросов)
+     - Режим TLS ISTIO_MUTUAL
 
-4. **Deployment Script (`deploy.sh`)**:
-   - Installs and configures Istio in the cluster
-   - Enables automatic sidecar injection
-   - Applies all Kubernetes and Istio resources
+4. **Скрипт развертывания (`deploy.sh`)**:
+   - Устанавливает и настраивает сервисную сетку Istio
+   - Включает автоматическую инъекцию sidecar-контейнеров
+   - Применяет все ресурсы Kubernetes и Istio
 
-## Features Implemented
+## Реализованные функции
 
-1. **External Traffic Access**:
-   - Traffic enters through Istio Gateway on port 80
+1. **Доступ внешнего трафика**:
+   - Трафик поступает через Istio Gateway на порту 80
 
-2. **Traffic Routing**:
-   - Main routes directed to the custom-app-service
-   - Unknown routes return 404 error
+2. **Маршрутизация трафика**:
+   - Основные маршруты направлены к custom-app-service
+   - Неизвестные маршруты возвращают ошибку 404
 
-3. **Connection Management**:
-   - Load balancing with LEAST_CONN algorithm
-   - Connection limits to prevent overload
+3. **Управление соединениями**:
+   - Балансировка нагрузки с алгоритмом LEAST_CONN
+   - Ограничения соединений для предотвращения перегрузки
 
-4. **Fault Tolerance Testing**:
-   - 2-second delay added to `/log` endpoint
-   - 1-second timeout to force timeout errors
-   - Up to 2 retries for failed requests
+4. **Тестирование отказоустойчивости**:
+   - 2-секундная задержка добавлена к конечной точке `/log`
+   - 1-секундный таймаут для принудительных ошибок по таймауту
+   - До 2 повторных попыток для неудавшихся запросов
 
-5. **Secure Communication**:
-   - Mutual TLS between services using Istio's built-in security
+5. **Защищенное взаимодействие**:
+   - Взаимная TLS-аутентификация между сервисами с использованием встроенной безопасности Istio
 
-## How to Use
+## Как использовать
 
-1. Make sure you have `kubectl` and `istioctl` installed.
-2. Run the deployment script:
+1. Убедитесь, что у вас установлены `kubectl` и `istioctl`.
+2. Запустите скрипт развертывания:
    ```
    ./deploy.sh
    ```
-3. Access the application through the Istio ingress gateway:
+3. Получите доступ к приложению через Istio ingress gateway:
    ```
    kubectl get svc istio-ingressgateway -n istio-system
    ```
-4. Use the external IP to access the application:
+4. Используйте внешний IP-адрес для доступа к приложению:
    ```
    http://<EXTERNAL-IP>/
    ```
-5. Test the fault injection on the log endpoint:
+5. Протестируйте искусственную задержку на конечной точке логирования:
    ```
    http://<EXTERNAL-IP>/log
    ``` 
