@@ -1,76 +1,76 @@
-# Prometheus Monitoring Integration
+# Интеграция мониторинга Prometheus
 
-This solution implements Prometheus monitoring for the Kubernetes system with Istio service mesh.
+Данное решение реализует мониторинг Prometheus для Kubernetes-системы с сервисной сеткой Istio.
 
-## Components
+## Компоненты
 
-1. **Modified Application (`app/app.py`)**:
-   - Added Prometheus metrics endpoint at `/metrics`
-   - Implemented counters for `/log` endpoint calls (total, success, failure)
-   - Added request duration histogram for performance monitoring
-   - Exposed metrics in Prometheus format
+1. **Модифицированное приложение (`app/app.py`)**:
+   - Добавлена конечная точка для метрик Prometheus по пути `/metrics`
+   - Реализованы счетчики вызовов конечной точки `/log` (общее количество, успешные, неудачные)
+   - Добавлена гистограмма длительности запросов для мониторинга производительности
+   - Метрики предоставляются в формате Prometheus
 
-2. **Prometheus Deployment**:
-   - Uses `kube-prometheus-stack` Helm chart
-   - Custom configuration in `prometheus-values.yaml`
-   - Automatic service discovery for Kubernetes pods
-   - Specific scraping configuration for Istio metrics
+2. **Развертывание Prometheus**:
+   - Использует Helm-чарт `kube-prometheus-stack`
+   - Пользовательская конфигурация в `prometheus-values.yaml`
+   - Автоматическое обнаружение сервисов в Kubernetes
+   - Специальная конфигурация для сбора метрик Istio
 
-3. **Kubernetes Manifests**:
-   - Updated deployment with Prometheus annotations
-   - Added ServiceMonitor custom resource for Prometheus Operator
-   - Health and readiness probes for better monitoring
+3. **Манифесты Kubernetes**:
+   - Обновленный deployment с аннотациями для Prometheus
+   - Добавлен ресурс ServiceMonitor для оператора Prometheus
+   - Пробы здоровья и готовности для лучшего мониторинга
 
-4. **Deployment Script (`deploy.sh`)**:
-   - Installs and configures Istio service mesh
-   - Sets up Prometheus monitoring stack
-   - Deploys application and monitoring components
-   - Provides convenient access to dashboards
+4. **Скрипт развертывания (`deploy.sh`)**:
+   - Устанавливает и настраивает сервисную сетку Istio
+   - Настраивает стек мониторинга Prometheus
+   - Разворачивает приложение и компоненты мониторинга
+   - Предоставляет удобный доступ к дашбордам
 
-## Metrics Available
+## Доступные метрики
 
-1. **Custom Application Metrics**:
-   - `log_requests_total`: Counter of total `/log` endpoint calls
-   - `log_requests_success`: Counter of successful `/log` endpoint calls
-   - `log_requests_failure`: Counter of failed `/log` endpoint calls
-   - `app_request_duration_seconds`: Histogram of request processing times
+1. **Метрики пользовательского приложения**:
+   - `log_requests_total`: Счетчик общего количества вызовов конечной точки `/log`
+   - `log_requests_success`: Счетчик успешных вызовов конечной точки `/log`
+   - `log_requests_failure`: Счетчик неудачных вызовов конечной точки `/log`
+   - `app_request_duration_seconds`: Гистограмма времени обработки запросов
 
-2. **Istio Metrics**:
-   - `istio_requests_total`: Total count of requests across the mesh
-   - `istio_request_duration_seconds`: Request duration in Istio
-   - `istio_response_bytes`: Size of the HTTP response
+2. **Метрики Istio**:
+   - `istio_requests_total`: Общее количество запросов в сервисной сетке
+   - `istio_request_duration_seconds`: Длительность запросов в Istio
+   - `istio_response_bytes`: Размер HTTP-ответа
 
-3. **System Metrics**:
-   - Standard Kubernetes metrics via kube-state-metrics
-   - Node metrics via node-exporter
+3. **Системные метрики**:
+   - Стандартные метрики Kubernetes через kube-state-metrics
+   - Метрики узлов через node-exporter
 
-## How to Use
+## Как использовать
 
-1. Prerequisites:
-   - Kubernetes cluster
-   - kubectl, istioctl, and helm installed
-   - Docker for building the application image
+1. Предварительные требования:
+   - Кластер Kubernetes
+   - Установленные kubectl, istioctl и helm
+   - Docker для сборки образа приложения
 
-2. Run the deployment script:
+2. Запустите скрипт развертывания:
    ```
    ./deploy.sh
    ```
 
-3. Access Prometheus dashboard:
+3. Доступ к дашборду Prometheus:
    ```
    kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090:9090
    ```
-   Then open `http://localhost:9090` in your browser
+   Затем откройте `http://localhost:9090` в браузере
 
-4. Access Grafana dashboard:
+4. Доступ к дашборду Grafana:
    ```
    kubectl port-forward -n monitoring svc/prometheus-grafana 3000:80
    ```
-   Then open `http://localhost:3000` in your browser
-   Use `admin / admin` credentials
+   Затем откройте `http://localhost:3000` в браузере
+   Используйте учетные данные: `admin / admin`
 
-5. Suggested Prometheus queries:
-   - `log_requests_total`: Total number of log requests
-   - `rate(app_request_duration_seconds_count[5m])`: Request rate by endpoint
-   - `histogram_quantile(0.95, sum(rate(app_request_duration_seconds_bucket[5m])) by (endpoint, le))`: 95th percentile latency by endpoint
-   - `istio_requests_total{destination_service="custom-app-service.default.svc.cluster.local"}`: Istio-tracked requests to the app 
+5. Рекомендуемые запросы Prometheus:
+   - `log_requests_total`: Общее количество запросов логирования
+   - `rate(app_request_duration_seconds_count[5m])`: Частота запросов по конечным точкам
+   - `histogram_quantile(0.95, sum(rate(app_request_duration_seconds_bucket[5m])) by (endpoint, le))`: 95-й процентиль задержки по конечным точкам
+   - `istio_requests_total{destination_service="custom-app-service.default.svc.cluster.local"}`: Запросы к приложению, отслеживаемые Istio 
