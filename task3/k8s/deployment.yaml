@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: custom-app-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: custom-app
+  template:
+    metadata:
+      labels:
+        app: custom-app
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "5000"
+    spec:
+      containers:
+      - name: custom-app
+        image: custom-app:v2
+        ports:
+        - containerPort: 5000
+          name: http
+        volumeMounts:
+        - name: log-volume
+          mountPath: /app/logs
+        - name: config-volume
+          mountPath: /app/config
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+      volumes:
+      - name: log-volume
+        hostPath:
+          path: /var/log/custom-app
+          type: DirectoryOrCreate
+      - name: config-volume
+        configMap:
+          name: custom-app-config 

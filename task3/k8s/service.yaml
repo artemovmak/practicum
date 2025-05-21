@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: custom-app-service
+  labels:
+    app: custom-app
+spec:
+  type: ClusterIP
+  selector:
+    app: custom-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5000
+    name: http 
